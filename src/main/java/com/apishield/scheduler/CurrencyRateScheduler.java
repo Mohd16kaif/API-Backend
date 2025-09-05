@@ -3,6 +3,7 @@ package com.apishield.scheduler;
 import com.apishield.service.CurrencyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -23,8 +24,12 @@ public class CurrencyRateScheduler {
         try {
             currencyService.updateExchangeRates();
             log.info("Successfully completed scheduled exchange rate update");
+        } catch (DataIntegrityViolationException e) {
+            // Handle duplicate key errors gracefully - don't crash the app
+            log.warn("Duplicate currency rate detected - skipping this update cycle: {}", e.getMessage());
         } catch (Exception e) {
             log.error("Error during scheduled exchange rate update", e);
+            // Don't rethrow - let the scheduler continue running
         }
     }
 
@@ -45,6 +50,7 @@ public class CurrencyRateScheduler {
 
         } catch (Exception e) {
             log.error("Error during exchange rate cleanup", e);
+            // Don't rethrow - let the scheduler continue
         }
     }
 }
