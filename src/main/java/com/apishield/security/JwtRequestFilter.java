@@ -30,7 +30,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         boolean skip = path.startsWith("/api/auth/") ||
                 path.equals("/health") ||
-                path.startsWith("/actuator/health");
+                path.equals("/") ||
+                path.startsWith("/actuator/health") ||
+                path.startsWith("/v3/api-docs") ||
+                path.startsWith("/swagger-ui") ||
+                path.equals("/swagger-ui.html") ||
+                path.startsWith("/swagger-resources") ||
+                path.startsWith("/webjars");
 
         log.debug("Should NOT filter path '{}': {}", path, skip);
         return skip;
@@ -40,16 +46,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // Get the request path
         String path = request.getRequestURI();
-        log.debug("Processing request for path: {}", path);
-
-        // Skip JWT validation for public endpoints
-        if (shouldSkipJwtValidation(path)) {
-            log.debug("Skipping JWT validation for public endpoint: {}", path);
-            filterChain.doFilter(request, response);
-            return;
-        }
+        log.debug("Processing JWT validation for protected path: {}", path);
 
         try {
             String jwt = parseJwt(request);
@@ -72,20 +70,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
-    }
-
-    /**
-     * Determine if JWT validation should be skipped for the given path
-     */
-    private boolean shouldSkipJwtValidation(String path) {
-        return path.startsWith("/api/auth/") ||
-                path.equals("/health") ||
-                path.startsWith("/actuator/health") ||
-                path.startsWith("/v3/api-docs") ||
-                path.startsWith("/swagger-ui") ||
-                path.equals("/swagger-ui.html") ||
-                path.startsWith("/swagger-resources") ||
-                path.startsWith("/webjars");
     }
 
     private String parseJwt(HttpServletRequest request) {
