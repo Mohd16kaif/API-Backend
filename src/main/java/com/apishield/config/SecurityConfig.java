@@ -51,6 +51,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         // Public endpoints (no authentication required)
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/health").permitAll()  // ADDED: Custom health endpoint
                         .requestMatchers("/actuator/health").permitAll()
 
                         // Swagger/OpenAPI endpoints (allow public access)

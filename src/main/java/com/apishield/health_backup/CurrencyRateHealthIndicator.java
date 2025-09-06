@@ -1,5 +1,4 @@
-package com.apishield.health;
-
+package com.apishield.health_backup;
 import com.apishield.repository.CurrencyRateRepository;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
