@@ -29,9 +29,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // Skip JWT validation for public endpoints
+        // Get the request path
         String path = request.getRequestURI();
-        if (path.startsWith("/api/auth/") || path.equals("/health") || path.startsWith("/actuator/health")) {
+        log.debug("Processing request for path: {}", path);
+
+        // Skip JWT validation for public endpoints
+        if (shouldSkipJwtValidation(path)) {
+            log.debug("Skipping JWT validation for public endpoint: {}", path);
             filterChain.doFilter(request, response);
             return;
         }
@@ -48,12 +52,29 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                log.debug("Authentication set for user: {}", email);
+            } else {
+                log.debug("No valid JWT token found for protected endpoint: {}", path);
             }
         } catch (Exception e) {
-            log.error("Cannot set user authentication: {}", e.getMessage());
+            log.error("Cannot set user authentication for path {}: {}", path, e.getMessage());
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Determine if JWT validation should be skipped for the given path
+     */
+    private boolean shouldSkipJwtValidation(String path) {
+        return path.startsWith("/api/auth/") ||
+                path.equals("/health") ||
+                path.startsWith("/actuator/health") ||
+                path.startsWith("/v3/api-docs") ||
+                path.startsWith("/swagger-ui") ||
+                path.equals("/swagger-ui.html") ||
+                path.startsWith("/swagger-resources") ||
+                path.startsWith("/webjars");
     }
 
     private String parseJwt(HttpServletRequest request) {
