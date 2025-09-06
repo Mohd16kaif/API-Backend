@@ -26,6 +26,17 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService userDetailsService;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        boolean skip = path.startsWith("/api/auth/") ||
+                path.equals("/health") ||
+                path.startsWith("/actuator/health");
+
+        log.debug("Should NOT filter path '{}': {}", path, skip);
+        return skip;
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
