@@ -50,6 +50,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authz -> authz
                         // Public endpoints (no authentication required)
+                        .requestMatchers("/").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/health").permitAll()  // ADDED: Custom health endpoint
                         .requestMatchers("/actuator/health").permitAll()
